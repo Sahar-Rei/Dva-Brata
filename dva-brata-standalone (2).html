@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dva Brata: Bradars 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Rubik:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: blocks stacked off-axis, each in a hand-chopped yellow frame. The hero is a brick mangal with live fire between two walls.
+   Single committed look (coal / red / yellow), so no light theme. */
+:root{
+  --coal:#0f0b0a;
+  --blood:#3a0b09;
+  --red:#d9201a;
+  --red-hot:#ff3a2d;
+  --yellow:#ffc318;
+  --ash:#f4ead8;
+  --display:'Rubik Mono One','Arial Black',Impact,sans-serif;
+  --body:'Rubik','Segoe UI',Arial,sans-serif;
+  --o1:polygon(0 2%,4% 0,33% 1%,61% 0,88% .8%,100% 0,99.3% 38%,100% 74%,98.8% 100%,66% 99%,38% 100%,14% 99.2%,0 100%,.8% 64%,0 33%);
+  --o2:polygon(0 0,22% 1.2%,47% 0,76% 1%,100% 0,98.9% 29%,100% 58%,99.2% 100%,71% 98.8%,44% 100%,19% 99%,0 100%,1% 71%,0 40%);
+  --o3:polygon(1% 0,29% .9%,55% 0,81% 1.4%,100% 1%,99% 45%,100% 82%,97.8% 100%,63% 99%,31% 100%,8% 98.9%,0 99%,1.1% 52%,0 18%);
+  --i1:polygon(0 1%,20% 0,52% 1.4%,100% 0,99% 100%,71% 99%,36% 100%,0 98.6%);
+  --i2:polygon(0 0,41% 1%,100% 1.5%,98.8% 99%,59% 100%,0 99%);
+  --i3:polygon(1% 1.2%,63% 0,100% 1%,100% 98.8%,24% 100%,0 100%);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--coal);scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--coal);color:var(--ash);
+  font:400 16px/1.55 var(--body);-webkit-font-smoothing:antialiased;
+  padding-block:20px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.page{max-width:1160px;margin:0 auto;overflow-x:clip;display:flex;flex-direction:column;gap:clamp(52px,9vw,104px)}
+
+/* hand-chopped frame: yellow outer shape, darker inner shape cut differently so the border thickness wanders */
+.rough{position:relative;background:var(--yellow);padding:var(--b,5px);clip-path:var(--o)}
+.rough>.in{position:relative;background:var(--fill,var(--coal));clip-path:var(--i)}
+.v1{--o:var(--o1);--i:var(--i1)}
+.v2{--o:var(--o2);--i:var(--i2)}
+.v3{--o:var(--o3);--i:var(--i3)}
+.rough::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;z-index:3;mix-blend-mode:screen;
+  background:radial-gradient(120% 90% at 50% 112%,#fff3a0 0%,#ffb800 22%,#ff3b00 52%,rgba(255,59,0,0) 78%);
+}
+
+/* scroll: raw until it reaches the screen, then flash and cook */
+.raw{opacity:.6;filter:grayscale(.85) brightness(.6);translate:0 22px}
+.burn{animation:cook 1.15s ease-out both}
+.burn.rough::after{animation:flare 1.1s ease-out both}
+@keyframes cook{
+  0%{filter:grayscale(.85) brightness(.6);translate:0 22px;opacity:.6}
+  22%{filter:brightness(2.5) saturate(2.2) sepia(.6) hue-rotate(-18deg);translate:0 6px;opacity:1}
+  55%{filter:brightness(1.5) saturate(1.5) sepia(.25) hue-rotate(-8deg);translate:0 -3px}
+  100%{filter:none;translate:0 0;opacity:1}
+}
+@keyframes flare{0%{opacity:0}18%{opacity:.95}60%{opacity:.35}100%{opacity:0}}
+
+#sparks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+/* ---------- hero ---------- */
+.hero{--b:6px;--wall:48px}
+.hero>.in{
+  overflow:hidden;min-height:clamp(600px,82vw,740px);
+  background:radial-gradient(120% 70% at 50% 108%,rgba(217,32,26,.55),rgba(217,32,26,0) 62%),var(--coal);
+}
+#fire{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-content{
+  position:relative;z-index:1;container-type:inline-size;
+  display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+  padding:clamp(22px,4vw,40px) calc(var(--wall) + 16px) 0;
+}
+.tag{
+  margin:0;font:700 .72rem/1 var(--body);letter-spacing:.2em;text-transform:uppercase;
+  background:rgba(0,0,0,.6);padding:.6em .9em;border-left:5px solid var(--yellow);
+}
+.logo{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:12px;font-family:var(--display);font-weight:400}
+.logo .l1{
+  font-size:clamp(1.4rem,11.2cqi,5.2rem);line-height:.98;color:var(--yellow);text-transform:uppercase;
+  text-shadow:4px 4px 0 #000,7px 7px 0 var(--red);
+}
+.logo .l2{
+  font-size:clamp(1rem,6cqi,2.5rem);line-height:1;text-transform:uppercase;color:#fff8ec;
+  background:var(--red);padding:.28em .6em .34em;rotate:-2.2deg;margin-left:3%;
+  outline:3px solid var(--yellow);outline-offset:-3px;box-shadow:5px 5px 0 #000;
+}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;width:100%;margin-top:6px}
+@media (min-width:700px){.nav{display:flex;flex-wrap:wrap;gap:12px 14px;width:auto}}
+.nav a{
+  display:block;text-decoration:none;text-transform:uppercase;text-wrap:balance;
+  font:800 .78rem/1.2 var(--body);letter-spacing:.07em;
+  padding:.7em .9em;background:rgba(0,0,0,.62);border-bottom:4px solid var(--yellow);
+  transition:background .15s,color .15s;
+}
+.nav a:nth-child(2){translate:0 5px}
+.nav a:nth-child(3){translate:0 -3px}
+.nav a:nth-child(4){translate:0 4px}
+.nav a:hover{background:var(--yellow);color:#150705}
+
+/* ---------- shared section bits ---------- */
+.sec-head{display:flex;flex-direction:column;gap:12px}
+.eyebrow{display:flex;align-items:center;gap:12px;margin:0;font:800 .78rem/1 var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--yellow)}
+.eyebrow::before{content:"";width:34px;height:6px;background:var(--yellow);clip-path:polygon(0 20%,100% 0,96% 100%,4% 85%)}
+.h2{
+  margin:0;font:400 clamp(1.35rem,5.2vw,3.1rem)/1.1 var(--display);text-transform:uppercase;text-wrap:balance;
+  color:var(--yellow);text-shadow:3px 3px 0 #000,6px 6px 0 var(--red);overflow-wrap:anywhere;
+}
+.sk{display:block;width:min(150px,100%);height:auto;aspect-ratio:5/1}
+
+/* ---------- block 2 ---------- */
+.intro{--fill:var(--red);--b:6px;width:min(100%,940px);margin-left:auto;rotate:-.7deg}
+.intro>.in{padding:clamp(24px,5vw,56px);display:grid;gap:24px 40px}
+@media (min-width:820px){.intro>.in{grid-template-columns:1.1fr .9fr;align-items:end}.intro .copy-p{margin-top:40px}}
+.intro .h2{text-shadow:3px 3px 0 #000}
+.intro .eyebrow{color:#fff8ec}
+.intro .eyebrow::before{background:#fff8ec}
+.copy-p{margin:0;font-size:clamp(1.02rem,2.2vw,1.2rem);font-weight:500;color:#fff8ec;max-width:46ch}
+.intro .sk{grid-column:1/-1;width:min(300px,78%);rotate:-3deg;margin-top:4px}
+
+/* ---------- block 3 ---------- */
+.menu{list-style:none;margin:30px 0 0;padding:0;display:grid;grid-template-columns:1fr;gap:30px 22px}
+.cell{min-width:0;align-self:start;transition:rotate .25s,filter .25s}
+.cell:nth-child(1){rotate:-.9deg}
+.cell:nth-child(2){rotate:.8deg}
+.cell:nth-child(3){rotate:-.6deg}
+.cell:nth-child(4){rotate:.7deg}
+.cell:nth-child(5){rotate:-1deg}
+.cell:nth-child(6){rotate:.6deg}
+.cell:nth-child(odd){margin-right:12px}
+.cell:nth-child(even){margin-left:12px}
+@media (min-width:620px){
+  .menu{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cell:nth-child(n){margin-left:0;margin-right:0}
+  .cell:nth-child(2){margin-top:44px}
+  .cell:nth-child(3){margin-top:-8px}
+  .cell:nth-child(4){margin-top:36px}
+  .cell:nth-child(6){margin-top:48px}
+}
+@media (min-width:960px){
+  .menu{grid-template-columns:repeat(12,minmax(0,1fr));gap:34px 22px}
+  .cell:nth-child(1){grid-column:1/6;margin-top:0}
+  .cell:nth-child(2){grid-column:6/10;margin-top:46px}
+  .cell:nth-child(3){grid-column:10/13;margin-top:10px}
+  .cell:nth-child(4){grid-column:2/6;margin-top:0}
+  .cell:nth-child(5){grid-column:6/9;margin-top:54px}
+  .cell:nth-child(6){grid-column:9/13;margin-top:14px}
+}
+.cell:hover,.cell:focus-visible{
+  rotate:0deg;z-index:2;
+  filter:drop-shadow(0 0 16px rgba(255,92,20,.75)) drop-shadow(0 0 4px rgba(255,200,40,.85));
+}
+.cell:focus-visible{outline:none}
+.card{--b:4px;transition:background-color .35s}
+.card>.in{
+  display:flex;flex-direction:column;gap:10px;padding:20px 20px 18px;
+  background-color:var(--blood);
+  background-image:linear-gradient(to top,#ffe08a 0%,#ff7a14 7%,#e12512 14%,rgba(120,16,10,0) 22%);
+  background-size:100% 450%;background-position:0 0;background-repeat:no-repeat;
+  transition:background-position .5s ease;
+}
+.cell:hover .card,.cell:focus-visible .card{background-color:#fff2b8}
+.cell:hover .card>.in,.cell:focus-visible .card>.in{background-position:0 100%}
+.card h3{margin:0;font:400 clamp(1.05rem,2.2vw,1.3rem)/1.15 var(--display);color:var(--yellow);text-transform:uppercase;text-wrap:balance;overflow-wrap:anywhere;transition:color .25s}
+.card p{margin:0;color:var(--ash);transition:color .25s}
+.card .price{
+  margin-top:auto;padding-top:12px;border-top:3px solid rgba(255,195,24,.38);
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;
+  font-variant-numeric:tabular-nums;
+}
+.card .price b{font:400 clamp(1.1rem,2.2vw,1.3rem)/1.1 var(--display);color:var(--yellow);transition:color .25s}
+.card .price span{font-weight:700;font-size:.98rem;transition:color .25s}
+.cell:hover .card p,.cell:focus-visible .card p{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.45)}
+.cell:hover .card h3,.cell:focus-visible .card h3{color:#fff7d1;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.cell:hover .card .price b,.cell:focus-visible .card .price b,
+.cell:hover .card .price span,.cell:focus-visible .card .price span{color:#1a0705;text-shadow:none}
+.cell:hover .card .price,.cell:focus-visible .card .price{border-top-color:rgba(26,7,5,.5)}
+
+/* ---------- block 4 ---------- */
+.plates{list-style:none;margin:30px 0 0;padding:0;display:flex;flex-direction:column;gap:22px}
+.plate{--fill:var(--red);--b:5px}
+.plate>.in{padding:clamp(18px,3.4vw,30px) clamp(20px,4vw,40px)}
+.plate p{margin:0;font:400 clamp(1rem,2.5vw,1.55rem)/1.3 var(--display);color:#fff8ec;text-wrap:balance;overflow-wrap:anywhere}
+.plate:nth-child(1){width:min(100%,720px);rotate:-.8deg}
+.plate:nth-child(2){width:min(100%,680px);margin-left:auto;rotate:.9deg}
+.plate:nth-child(3){width:min(93%,790px);margin-left:7%;rotate:-.5deg}
+
+/* ---------- footer ---------- */
+.foot{display:flex;flex-direction:column;gap:22px;padding-bottom:8px}
+.foot .line{height:8px;background:var(--yellow);clip-path:polygon(0 30%,8% 0,30% 40%,55% 5%,80% 50%,100% 10%,100% 80%,72% 100%,44% 70%,20% 100%,0 75%)}
+.foot-big{margin:0;font:400 clamp(1.3rem,4.6vw,2.9rem)/1.15 var(--display);text-transform:uppercase;text-wrap:balance;color:var(--ash);overflow-wrap:anywhere}
+.foot-big em{font-style:normal;color:var(--red-hot)}
+.copy{margin:0;font-size:.82rem;letter-spacing:.08em;color:#b8ab97}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="sk-chunks" viewBox="0 0 120 24">
+      <line x1="2" y1="12" x2="108" y2="12" stroke="#d8d2c4" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="113" cy="12" r="4.5" fill="none" stroke="#d8d2c4" stroke-width="2.2"/>
+      <g style="fill:var(--meat)" stroke="#120706" stroke-width="2" stroke-linejoin="round">
+        <rect x="8" y="4" width="21" height="16" rx="5"/>
+        <rect x="31" y="3" width="21" height="18" rx="5"/>
+        <rect x="54" y="4" width="21" height="16" rx="5"/>
+        <rect x="77" y="3" width="21" height="18" rx="5"/>
+      </g>
+    </symbol>
+    <symbol id="sk-lula" viewBox="0 0 120 24">
+      <line x1="2" y1="12" x2="108" y2="12" stroke="#d8d2c4" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="113" cy="12" r="4.5" fill="none" stroke="#d8d2c4" stroke-width="2.2"/>
+      <rect x="10" y="3" width="88" height="18" rx="9" style="fill:var(--meat)" stroke="#120706" stroke-width="2"/>
+      <g stroke="#120706" stroke-width="2" stroke-linecap="round" opacity=".75">
+        <line x1="34" y1="6" x2="34" y2="18"/><line x1="58" y1="6" x2="58" y2="18"/><line x1="82" y1="6" x2="82" y2="18"/>
+      </g>
+    </symbol>
+    <symbol id="sk-ribs" viewBox="0 0 120 24">
+      <line x1="2" y1="12" x2="108" y2="12" stroke="#d8d2c4" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="113" cy="12" r="4.5" fill="none" stroke="#d8d2c4" stroke-width="2.2"/>
+      <g style="fill:var(--meat)" stroke="#120706" stroke-width="2" stroke-linejoin="round">
+        <rect x="10" y="2" width="24" height="20" rx="4"/>
+        <rect x="38" y="2" width="24" height="20" rx="4"/>
+        <rect x="66" y="2" width="24" height="20" rx="4"/>
+      </g>
+      <g stroke="#f1e6cf" stroke-width="2.2" stroke-linecap="round">
+        <line x1="22" y1="6" x2="22" y2="18"/><line x1="50" y1="6" x2="50" y2="18"/><line x1="78" y1="6" x2="78" y2="18"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<canvas id="sparks" aria-hidden="true"></canvas>
+
+<div class="page">
+
+  <!-- БЛОК 1: header + главный мангал -->
+  <header class="hero rough v1" id="zhar">
+    <div class="in" id="scene">
+      <canvas id="fire" aria-hidden="true"></canvas>
+      <div class="hero-content">
+        <p class="tag">Мангальная на открытом огне</p>
+        <h1 class="logo"><span class="l1">Dva Brata</span><span class="l2">Bradars 2</span></h1>
+        <nav class="nav" aria-label="Разделы страницы">
+          <a href="#privet">Огненный привет</a>
+          <a href="#zhar">Жар</a>
+          <a href="#shampury">Шесть шампуров</a>
+          <a href="#dym">Особый дым</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main style="display:flex;flex-direction:column;gap:inherit">
+
+    <!-- БЛОК 2: Огненный привет -->
+    <section id="privet" aria-labelledby="privet-h">
+      <article class="intro rough v2" data-burn>
+        <div class="in">
+          <div class="sec-head">
+            <p class="eyebrow">Огненный привет</p>
+            <h2 class="h2" id="privet-h">Жарим на углях, а не на словах</h2>
+          </div>
+          <p class="copy-p">Настоящий дым, дикое мясо, суровый маринад и ничего лишнего. Dva Brata делают шашлык так, как его делали на природе — на открытом огне и от всей души.</p>
+          <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#f07a3a"><use href="#sk-chunks"/></svg>
+        </div>
+      </article>
+    </section>
+
+    <!-- БЛОК 3: Шесть шампуров -->
+    <section id="shampury" aria-labelledby="menu-h">
+      <div class="sec-head" data-burn>
+        <p class="eyebrow">Меню</p>
+        <h2 class="h2" id="menu-h">Шесть шампуров</h2>
+      </div>
+      <ul class="menu">
+        <li class="cell" tabindex="0">
+          <article class="card rough v1" data-burn data-delay="0">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#c04a2e"><use href="#sk-chunks"/></svg>
+              <h3>Классика Братства</h3>
+              <p>Сочный шашлык из баранины с луком и специями.</p>
+              <p class="price"><b>45&nbsp;000 сум</b><span>350 руб.</span></p>
+            </div>
+          </article>
+        </li>
+        <li class="cell" tabindex="0">
+          <article class="card rough v2" data-burn data-delay="110">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#d9806a"><use href="#sk-chunks"/></svg>
+              <h3>Дикий Кабан</h3>
+              <p>Мякоть свинины в фирменном маринаде на углях.</p>
+              <p class="price"><b>42&nbsp;000 сум</b><span>320 руб.</span></p>
+            </div>
+          </article>
+        </li>
+        <li class="cell" tabindex="0">
+          <article class="card rough v3" data-burn data-delay="220">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#e8b04a"><use href="#sk-chunks"/></svg>
+              <h3>Птичий Жар</h3>
+              <p>Нежное куриное бедро с хрустящей корочкой.</p>
+              <p class="price"><b>35&nbsp;000 сум</b><span>270 руб.</span></p>
+            </div>
+          </article>
+        </li>
+        <li class="cell" tabindex="0">
+          <article class="card rough v2" data-burn data-delay="0">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#b83a3a"><use href="#sk-chunks"/></svg>
+              <h3>Телячий Клыкач</h3>
+              <p>Вырезка из молодой говядины с дубовым дымком.</p>
+              <p class="price"><b>48&nbsp;000 сум</b><span>380 руб.</span></p>
+            </div>
+          </article>
+        </li>
+        <li class="cell" tabindex="0">
+          <article class="card rough v3" data-burn data-delay="110">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#a8582f"><use href="#sk-lula"/></svg>
+              <h3>Огненный Люля</h3>
+              <p>Рубленое мясо со специями на широком шампуре.</p>
+              <p class="price"><b>38&nbsp;000 сум</b><span>290 руб.</span></p>
+            </div>
+          </article>
+        </li>
+        <li class="cell" tabindex="0">
+          <article class="card rough v1" data-burn data-delay="220">
+            <div class="in">
+              <svg class="sk" viewBox="0 0 120 24" aria-hidden="true" style="--meat:#d2541c"><use href="#sk-ribs"/></svg>
+              <h3>Ребра на Ветру</h3>
+              <p>Сочные ребра в остро-сладком глазировании.</p>
+              <p class="price"><b>50&nbsp;000 сум</b><span>400 руб.</span></p>
+            </div>
+          </article>
+        </li>
+      </ul>
+    </section>
+
+    <!-- БЛОК 4: Секрет Жафра -->
+    <section id="dym" aria-labelledby="dym-h">
+      <div class="sec-head" data-burn>
+        <p class="eyebrow">Особый дым</p>
+        <h2 class="h2" id="dym-h">Секрет Жафра</h2>
+      </div>
+      <ul class="plates">
+        <li class="plate rough v2" data-burn data-delay="0"><div class="in"><p>Только натуральные угли и березовый дым</p></div></li>
+        <li class="plate rough v3" data-burn data-delay="150"><div class="in"><p>Маринад по секретному рецепту двух братьев</p></div></li>
+        <li class="plate rough v1" data-burn data-delay="300"><div class="in"><p>Гигантские порции без лишней эстетики</p></div></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- БЛОК 5: футер -->
+  <footer class="foot" data-burn>
+    <div class="line" aria-hidden="true"></div>
+    <p class="foot-big">Dva Brata: Bradars 2 — <em>Жар, мясо и дым.</em></p>
+    <p class="copy">© 2026 Dva Brata: Bradars 2</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- sparks over the page (scroll cook + card hover) ---------- */
+var sc = document.getElementById('sparks'), sx = sc.getContext('2d');
+var sp = [], sRun = false, sLast = 0;
+function sSize(){
+  var d = Math.min(window.devicePixelRatio || 1, 2);
+  sc.width = Math.round(innerWidth * d); sc.height = Math.round(innerHeight * d);
+  sx.setTransform(d, 0, 0, d, 0, 0);
+}
+sSize(); addEventListener('resize', sSize);
+
+function burst(r, n, power){
+  if (reduce) return;
+  var vh = innerHeight; power = power || 1;
+  if (r.bottom < 0 || r.top > vh) return;
+  for (var i = 0; i < n && sp.length < 420; i++){
+    sp.push({
+      x: r.left + Math.random() * r.width,
+      y: Math.min(vh - 2, Math.max(2, r.top + r.height * (0.5 + Math.random() * 0.5))),
+      vx: (Math.random() - 0.5) * 140 * power,
+      vy: -(90 + Math.random() * 300) * power,
+      l: 0, L: 0.55 + Math.random() * 0.95, s: 1.2 + Math.random() * 2.6
+    });
+  }
+  if (!sRun){ sRun = true; sLast = performance.now(); requestAnimationFrame(sTick); }
+}
+function sTick(now){
+  var dt = Math.min(0.05, (now - sLast) / 1000); sLast = now;
+  sx.clearRect(0, 0, innerWidth, innerHeight);
+  sx.globalCompositeOperation = 'lighter';
+  for (var i = sp.length - 1; i >= 0; i--){
+    var p = sp[i]; p.l += dt;
+    if (p.l >= p.L){ sp.splice(i, 1); continue; }
+    p.vx += (Math.random() - 0.5) * 420 * dt; p.vy += 70 * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    var a = 1 - p.l / p.L, s = p.s * (0.5 + 0.5 * a);
+    sx.fillStyle = 'rgba(255,' + Math.round(70 + 150 * a) + ',' + Math.round(20 + 70 * a * a) + ',' + (a * 0.95).toFixed(3) + ')';
+    sx.fillRect(p.x - s / 2, p.y - s / 2, s, s * (1 + Math.min(2.2, Math.abs(p.vy) / 220)));
+  }
+  if (sp.length) requestAnimationFrame(sTick);
+  else { sRun = false; sx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ---------- blocks arrive raw, then flash and cook as they scroll in ---------- */
+var els = [].slice.call(document.querySelectorAll('[data-burn]'));
+if (!reduce && 'IntersectionObserver' in window){
+  var vh0 = innerHeight;
+  els.forEach(function(el){ if (el.getBoundingClientRect().top > vh0 * 0.9) el.classList.add('raw'); });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var el = e.target; io.unobserve(el);
+      var d = +(el.getAttribute('data-delay') || 0);
+      setTimeout(function(){
+        el.classList.remove('raw'); el.classList.add('burn');
+        var r = el.getBoundingClientRect();
+        burst(r, Math.min(64, 18 + Math.round(r.width / 16)), 1);
+        setTimeout(function(){ el.classList.remove('burn'); }, 1700);
+      }, d);
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+  els.forEach(function(el){ io.observe(el); });
+}
+
+/* ---------- hot metal: sparks while a card is hovered or focused ---------- */
+[].forEach.call(document.querySelectorAll('.cell'), function(c){
+  var tm = 0;
+  c.addEventListener('pointerenter', function(){
+    burst(c.getBoundingClientRect(), 30, 1.1);
+    clearInterval(tm);
+    tm = setInterval(function(){ burst(c.getBoundingClientRect(), 9, 0.9); }, 280);
+  });
+  c.addEventListener('pointerleave', function(){ clearInterval(tm); });
+  c.addEventListener('focus', function(){ burst(c.getBoundingClientRect(), 30, 1.1); });
+});
+
+/* ---------- main mangal: brick walls + coals + fire ---------- */
+var scene = document.getElementById('scene'), cv = document.getElementById('fire'), ctx = cv.getContext('2d');
+var W = 0, H = 0, dpr = 1, wallW = 48, fl = 0, fw = 0, cb = 60, wc = null;
+var coals = [], ps = [], em = [];
+var t = 0, acc = 0, eacc = 0, nextFlare = 1.2, flareUntil = 0, flareX = 0;
+var vis = true, raf = 0, lastT = 0;
+
+function rng(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    var x = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x;
+    return ((x ^ x >>> 14) >>> 0) / 4294967296;
+  };
+}
+function spriteFrom(c){
+  var s = document.createElement('canvas'); s.width = s.height = 64;
+  var g = s.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(' + c + ',1)');
+  gr.addColorStop(0.38, 'rgba(' + c + ',0.5)');
+  gr.addColorStop(1, 'rgba(' + c + ',0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return s;
+}
+var sprites = [[255,238,170],[255,170,30],[255,70,12],[170,16,8]].map(spriteFrom);
+
+function buildWalls(){
+  wc = document.createElement('canvas'); wc.width = cv.width; wc.height = cv.height;
+  var g = wc.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var bh = Math.max(14, Math.min(30, wallW / 4.4)), bw = bh * 2.15;
+  var fills = ['#090909','#090909','#1c1c1c','#383838','#6a6a6a','#a6a6a6','#ececec'];
+  g.lineWidth = Math.max(1.6, bh / 10); g.strokeStyle = '#ffffff'; g.lineJoin = 'miter';
+  for (var side = 0; side < 2; side++){
+    var r = rng(side ? 71 : 29), rows = Math.ceil(H / bh) + 1;
+    for (var row = 0; row < rows; row++){
+      var y = H - (row + 1) * bh, off = (row % 2) * bw / 2;
+      for (var d = -off; d + bw * 0.5 <= wallW; d += bw){
+        var x = side ? W - d - bw : d;
+        g.fillStyle = fills[Math.floor(r() * fills.length)];
+        g.fillRect(x, y, bw, bh);
+        g.strokeRect(x + g.lineWidth / 2, y + g.lineWidth / 2, bw - g.lineWidth, bh - g.lineWidth);
+      }
+    }
+  }
+}
+function buildCoals(){
+  coals = [];
+  var r = rng(5), x0 = wallW * 0.7, x1 = W - wallW * 0.7, n = Math.ceil((x1 - x0) / (cb * 0.5)) * 3;
+  for (var i = 0; i < n; i++){
+    var row = i % 3;
+    coals.push({
+      x: x0 + r() * (x1 - x0), y: H - cb * (0.18 + 0.3 * row) - r() * cb * 0.14,
+      w: cb * (0.28 + r() * 0.28), h: cb * (0.16 + r() * 0.14),
+      ph: r() * 6.28, sp: 0.7 + r() * 1.8, k: r()
+    });
+  }
+  coals.sort(function(a, b){ return a.y - b.y; });
+}
+
+function spawn(boost, cx, spread){
+  var nx = cx !== undefined ? (cx - fl) / fw + (Math.random() - 0.5) * spread
+                            : (Math.random() + Math.random() + Math.random()) / 3;
+  nx = Math.max(0, Math.min(1, nx));
+  var center = 1 - Math.abs(nx - 0.5) * 2;
+  var maxH = H * (0.30 + 0.27 * center) * boost;
+  var life = 0.5 + Math.random() * 0.5 + center * 0.25;
+  var base = Math.max(16, Math.min(60, fw * 0.07));
+  ps.push({
+    x: fl + nx * fw, y: H - cb * 0.62 + Math.random() * cb * 0.2,
+    vy: 2 * maxH / life * (0.75 + Math.random() * 0.5), L: life, a: 0,
+    s: base * (0.6 + Math.random() * 0.7) * (0.62 + 0.38 * center),
+    ph: Math.random() * 6.28, sw: 14 + Math.random() * 26
+  });
+}
+function step(dt){
+  t += dt;
+  var fk = 0.86 + 0.1 * Math.sin(t * 13) + 0.06 * Math.sin(t * 5.1);
+  acc += Math.max(120, Math.min(300, fw * 0.34)) * fk * dt;
+  while (acc >= 1){ acc--; spawn(1); }
+  if (t > nextFlare){ flareUntil = t + 0.3; nextFlare = t + 1.4 + Math.random() * 2.6; flareX = fl + (0.2 + Math.random() * 0.6) * fw; }
+  if (t < flareUntil){ for (var j = 0; j < Math.max(2, Math.round(fw * 0.006)); j++) spawn(1.55, flareX, 0.22); }
+  for (var i = ps.length - 1; i >= 0; i--){
+    var p = ps[i]; p.a += dt;
+    if (p.a >= p.L){ ps.splice(i, 1); continue; }
+    var u = p.a / p.L;
+    p.y -= p.vy * (1 - u) * dt;
+    p.x += Math.sin(p.a * 9 + p.ph) * p.sw * dt + ((fl + fw / 2) - p.x) * 0.35 * dt;
+  }
+  eacc += 14 * dt * (fw / 500);
+  while (eacc >= 1){
+    eacc--;
+    if (em.length < 60) em.push({
+      x: fl + Math.random() * fw, y: H - cb * 0.6, vx: (Math.random() - 0.5) * 50,
+      vy: (70 + Math.random() * 130) * (H / 560), L: 1 + Math.random() * 1.6, a: 0,
+      s: 1.4 + Math.random() * 2, ph: Math.random() * 6.28
+    });
+  }
+  for (var k = em.length - 1; k >= 0; k--){
+    var e = em[k]; e.a += dt;
+    if (e.a >= e.L){ em.splice(k, 1); continue; }
+    e.x += e.vx * dt + Math.sin(e.a * 7 + e.ph) * 20 * dt; e.y -= e.vy * dt;
+  }
+}
+function draw(){
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#120a09'; ctx.fillRect(wallW * 0.6, H - cb * 0.7, W - wallW * 1.2, cb * 0.7);
+  var i, c;
+  for (i = 0; i < coals.length; i++){
+    c = coals[i]; ctx.fillStyle = '#231512';
+    ctx.beginPath(); ctx.ellipse(c.x, c.y, c.w, c.h, 0, 0, 6.283); ctx.fill();
+  }
+  ctx.drawImage(wc, 0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  for (i = 0; i < coals.length; i++){
+    c = coals[i];
+    var gs = c.w * 2.2;
+    ctx.globalAlpha = Math.max(0, 0.35 + 0.35 * Math.sin(t * c.sp + c.ph)) * (0.6 + 0.4 * c.k);
+    ctx.drawImage(sprites[2], c.x - gs, c.y - gs * 0.7, gs * 2, gs * 1.4);
+  }
+  var fk = 0.85 + 0.12 * Math.sin(t * 11);
+  var ag = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, W * 0.55);
+  ag.addColorStop(0, 'rgba(255,90,20,' + (0.22 * fk).toFixed(3) + ')');
+  ag.addColorStop(1, 'rgba(255,90,20,0)');
+  ctx.globalAlpha = 1; ctx.fillStyle = ag; ctx.fillRect(0, 0, W, H);
+  for (i = 0; i < ps.length; i++){
+    var p = ps[i], u = p.a / p.L;
+    var si = u < 0.16 ? 0 : u < 0.42 ? 1 : u < 0.76 ? 2 : 3;
+    var sz = p.s * (1.05 - 0.7 * u);
+    ctx.globalAlpha = (u < 0.12 ? u / 0.12 : 1) * Math.pow(1 - u, 1.15) * 0.8;
+    ctx.drawImage(sprites[si], p.x - sz, p.y - sz, sz * 2, sz * 2);
+  }
+  for (i = 0; i < em.length; i++){
+    var e = em[i], ea = 1 - e.a / e.L;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(255,' + Math.round(110 + 120 * ea) + ',40,' + ea.toFixed(3) + ')';
+    ctx.fillRect(e.x, e.y, e.s, e.s);
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+function layout(){
+  var r = scene.getBoundingClientRect(), w = Math.round(r.width);
+  if (!w) return;
+  wallW = Math.max(36, Math.min(200, w * 0.12));
+  scene.style.setProperty('--wall', wallW.toFixed(1) + 'px');
+  r = scene.getBoundingClientRect();
+  var h = Math.round(r.height);
+  if (w === W && h === H) return;
+  W = w; H = h; dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  fl = wallW; fw = W - 2 * wallW; cb = Math.max(46, Math.min(92, H * 0.12));
+  buildWalls(); buildCoals(); ps.length = 0; em.length = 0;
+  if (reduce){ for (var i = 0; i < 80; i++) step(1 / 30); draw(); }
+}
+function frame(now){
+  raf = 0;
+  if (!vis || document.hidden || !W) return;
+  var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016); lastT = now;
+  step(dt); draw();
+  raf = requestAnimationFrame(frame);
+}
+function play(){
+  if (reduce || raf || !vis || document.hidden) return;
+  lastT = performance.now(); raf = requestAnimationFrame(frame);
+}
+if ('IntersectionObserver' in window){
+  new IntersectionObserver(function(es){ vis = es[0].isIntersecting; if (vis) play(); }).observe(scene);
+}
+document.addEventListener('visibilitychange', play);
+if ('ResizeObserver' in window) new ResizeObserver(layout).observe(scene);
+else addEventListener('resize', layout);
+layout(); play();
+})();
+</script>
+
+</body>
+</html>
